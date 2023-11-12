@@ -1,0 +1,34 @@
+version: 25
+jobs:
+- name: github mirror
+  steps:
+  - !PushRepository
+    name: github push
+    remoteUrl: https://github.com/gabrielepalaj/WMS-Server.git
+    userName: gabrielepalaj
+    passwordSecret: githubtokenwms-server
+    force: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  triggers:
+  - !BranchUpdateTrigger {}
+  - !TagCreateTrigger {}
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  timeout: 3600
+- name: Pull from Github
+  steps:
+  - !PullRepository
+    name: Pull
+    remoteUrl: https://github.com/gabrielepalaj/WMS-Server.git
+    syncToChildProject: false
+    userName: gabrielepalaj
+    passwordSecret: githubtokenwms-server
+    refs: refs/heads/* refs/tags/*
+    withLfs: false
+    force: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  timeout: 3600
