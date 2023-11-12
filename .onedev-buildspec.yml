@@ -1,6 +1,6 @@
 version: 25
 jobs:
-- name: github mirror
+- name: Push to Github
   steps:
   - !PushRepository
     name: github push
