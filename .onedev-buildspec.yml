@@ -16,19 +16,3 @@ jobs:
   maxRetries: 3
   retryDelay: 30
   timeout: 3600
-- name: Pull from Github
-  steps:
-  - !PullRepository
-    name: Pull
-    remoteUrl: https://github.com/gabrielepalaj/WMS-Server.git
-    syncToChildProject: false
-    userName: gabrielepalaj
-    passwordSecret: githubtokenwms-server
-    refs: refs/heads/* refs/tags/*
-    withLfs: false
-    force: false
-    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
-  retryCondition: never
-  maxRetries: 3
-  retryDelay: 30
-  timeout: 3600
