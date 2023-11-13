@@ -7,13 +7,14 @@
         <version>0.1</version>
     </parent>
 
-    <artifactId>server-core</artifactId>
+    <artifactId>server-product</artifactId>
     <packaging>jar</packaging>
 
-    <name>server-core</name>
+    <name>server-product</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
 
 </project>
