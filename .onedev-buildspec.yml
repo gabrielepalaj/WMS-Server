@@ -16,7 +16,7 @@ jobs:
   maxRetries: 3
   retryDelay: 30
   timeout: 3600
-- name: Maven CI
+- name: CI
   steps:
   - !CheckoutStep
     name: checkout
@@ -52,9 +52,6 @@ jobs:
     reportName: Unit Test
     filePatterns: '**/TEST-*.xml'
     condition: ALWAYS
-  triggers:
-  - !BranchUpdateTrigger {}
-  - !PullRequestUpdateTrigger {}
   retryCondition: never
   maxRetries: 3
   retryDelay: 30
@@ -70,8 +67,49 @@ jobs:
     withLfs: false
     withSubmodules: false
     condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !CommandStep
+    name: detect build version
+    runInContainer: true
+    image: '@script:builtin:maven:determine-docker-image@'
+    interpreter: !DefaultInterpreter
+      commands:
+      - echo "Detecting project version (may require some time while downloading maven dependencies)..."
+      - echo $(mvn org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate -Dexpression=project.version -q -DforceStdout) > buildVersion
+    useTTY: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !SetBuildVersionStep
+    name: set build version
+    buildVersion: '@file:buildVersion@'
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !CommandStep
+    name: build & deploy
+    runInContainer: true
+    image: '@property:buildEnvironment@'
+    interpreter: !DefaultInterpreter
+      commands:
+      - set -e
+      - set -o pipefail
+      - ''
+      - buildVersion=@build_version@
+    useTTY: true
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !PublishArtifactStep
+    name: publish artifacts
+    artifacts: '*.zip *.tar.gz ='
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !CloseMilestoneStep
+    name: close milestone
+    milestoneName: '@build_version@'
+    accessTokenSecret: onedev-token
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !PublishMarkdownReportStep
+    name: publish markdown report
+    reportName: Incompatibilities
+    filePatterns: server-product/system/incompatibilities/**
+    startPage: server-product/system/incompatibilities/incompatibilities.md
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
   jobDependencies:
-  - jobName: Maven CI
+  - jobName: CI
     requireSuccessful: true
     artifacts: '**'
   retryCondition: never
