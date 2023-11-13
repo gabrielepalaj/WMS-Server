@@ -102,12 +102,6 @@ jobs:
     milestoneName: '@build_version@'
     accessTokenSecret: onedev-token
     condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
-  - !PublishMarkdownReportStep
-    name: publish markdown report
-    reportName: Incompatibilities
-    filePatterns: server-product/system/incompatibilities/**
-    startPage: server-product/system/incompatibilities/incompatibilities.md
-    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
   jobDependencies:
   - jobName: CI
     requireSuccessful: true
