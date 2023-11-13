@@ -84,7 +84,7 @@ jobs:
   - !CommandStep
     name: build & deploy
     runInContainer: true
-    image: '@property:buildEnvironment@'
+    image: '@script:builtin:maven:determine-docker-image@'
     interpreter: !DefaultInterpreter
       commands:
       - set -e
