@@ -16,3 +16,65 @@ jobs:
   maxRetries: 3
   retryDelay: 30
   timeout: 3600
+- name: Maven CI
+  steps:
+  - !CheckoutStep
+    name: checkout
+    cloneCredential: !DefaultCredential {}
+    withLfs: false
+    withSubmodules: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !CommandStep
+    name: detect build version
+    runInContainer: true
+    image: '@script:builtin:maven:determine-docker-image@'
+    interpreter: !DefaultInterpreter
+      commands:
+      - echo "Detecting project version (may require some time while downloading maven dependencies)..."
+      - echo $(mvn org.apache.maven.plugins:maven-help-plugin:3.1.0:evaluate -Dexpression=project.version -q -DforceStdout) > buildVersion
+    useTTY: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !SetBuildVersionStep
+    name: set build version
+    buildVersion: '@file:buildVersion@'
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !CommandStep
+    name: run tests
+    runInContainer: true
+    image: '@script:builtin:maven:determine-docker-image@'
+    interpreter: !DefaultInterpreter
+      commands:
+      - mvn clean test
+    useTTY: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  - !PublishJUnitReportStep
+    name: publish unit test report
+    reportName: Unit Test
+    filePatterns: '**/TEST-*.xml'
+    condition: ALWAYS
+  triggers:
+  - !BranchUpdateTrigger {}
+  - !PullRequestUpdateTrigger {}
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  caches:
+  - key: maven-cache
+    path: /root/.m2/repository
+  timeout: 3600
+- name: Release
+  steps:
+  - !CheckoutStep
+    name: checkout
+    cloneCredential: !DefaultCredential {}
+    withLfs: false
+    withSubmodules: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  jobDependencies:
+  - jobName: Maven CI
+    requireSuccessful: true
+    artifacts: '**'
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  timeout: 3600
