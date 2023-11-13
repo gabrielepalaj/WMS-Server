@@ -85,7 +85,8 @@ jobs:
     name: build & deploy
     runInContainer: true
     image: '@script:builtin:maven:determine-docker-image@'
-    interpreter: !DefaultInterpreter
+    interpreter: !ShellInterpreter
+      shell: bash
       commands:
       - set -e
       - set -o pipefail
